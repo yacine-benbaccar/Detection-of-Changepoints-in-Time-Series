@@ -14,32 +14,35 @@ class CPD():
 		self.shapes = None
 		self.max_depth = 5
 		self.ratio = 0.01
+		self.criterion = "mse"
 		self.y = None
 		self.dy = None
 		self.regionColors = ["#baaeb5", "#fab505"]
 		self.lineColors = []
 		self.derivative = False
 
-	def detect(self, y, ratio=0.01, max_depth=5, derivative=False,):
+	def detect(self, y, ratio=0.01, max_depth=5, derivative=False, criterion="mse",):
 		"""
 		y : np.1darray representing the values of the time series
 		ratio: the minmum amout of points (in percentage) that composes an interval
 		max_depth: determines the maximum number of intervals that we can discover (max_#interval = 2^max_depth)
 		derivative: use the derivative of the signal to identify the changepoint intervals
+		criterion: the loss metric to quantify the error of our splitting intervals ["mae", "mse"]
 		"""
 		self.y = y.copy()
 		self.derivative = derivative
 		self.max_depth = max_depth
 		self.ratio = ratio
+		self.criterion = criterion
 		N = len(y)
 		x = np.arange(N).reshape(-1,1)
 		dy = np.gradient(y, 1)
 
 		if derivative:
-			reg = DecisionTreeRegressor(random_state=0, max_depth=max_depth, min_samples_leaf=int(N*ratio),)
+			reg = DecisionTreeRegressor(random_state=0, max_depth=max_depth, min_samples_leaf=int(N*ratio), criterion=criterion,)
 			reg.fit(x,dy)
 		else:
-			reg = DecisionTreeRegressor(random_state=0, max_depth=max_depth, min_samples_leaf=int(N*ratio),)
+			reg = DecisionTreeRegressor(random_state=0, max_depth=max_depth, min_samples_leaf=int(N*ratio), criterion=criterion,)
 			reg.fit(x,y)
 
 		splits = np.insert(np.round(np.unique(reg.tree_.threshold)),
@@ -119,7 +122,7 @@ class CPD():
 					name="Derivative function"))
 		fig.update_layout(
 			title=go.layout.Title(
-				text="Changepoints Detection, Derivative used = {}, ratio = {} %, max_depth = {}".format(self.derivative, self.ratio*100, self.max_depth),
+				text="Changepoints Detection, Derivative used = {}, ratio = {} %, max_depth = {}, criterion = {}".format(self.derivative, self.ratio*100, self.max_depth, self.criterion),
 				xref="paper",
 				x=0.5))
 		plot(fig)
