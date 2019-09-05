@@ -1,1 +1,1 @@
-# Dection-of-Changepoints-in-Time-Series
+# Dection of Changepoints in Time Series
