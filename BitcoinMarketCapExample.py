@@ -13,7 +13,7 @@ if __name__ == "__main__":
                  skiprows=400)
 	y = df["MarketCap"].values
 	cpd = CPD()
-	cpd.detect(y, derivative=True)
+	cpd.detect(y, derivative=True, linear_model='Lasso')
 	cpd.plot(derivative=True, detrended=True)
 	# cpd_mae = CPD()
 	# cpd_mae.detect(y, derivative=True, criterion="mae")

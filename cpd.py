@@ -3,7 +3,7 @@ author: @yacine-benbaccar
 """
 import numpy as np
 from sklearn.tree import DecisionTreeRegressor
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, Lasso, Ridge
 from plotly.offline import plot
 import plotly.graph_objects as go
 
@@ -20,20 +20,23 @@ class CPD():
 		self.regionColors = ["#baaeb5", "#fab505"]
 		self.lineColors = []
 		self.derivative = False
+		self.linear_model = 'Linear'
 
-	def detect(self, y, ratio=0.01, max_depth=5, derivative=False, criterion="mse",):
+	def detect(self, y, ratio=0.01, max_depth=5, derivative=False, criterion="mse",linear_model="Linear",**kwargs):
 		"""
 		y : np.1darray representing the values of the time series
 		ratio: the minmum amout of points (in percentage) that composes an interval
 		max_depth: determines the maximum number of intervals that we can discover (max_#interval = 2^max_depth)
 		derivative: use the derivative of the signal to identify the changepoint intervals
-		criterion: the loss metric to quantify the error of our splitting intervals ["mae", "mse"]
+		criterion: the loss metric to quantify the error of our splitting intervals ["mae", "mse"], this is used for the detection of intervals
+		linear_model: ['Linear', 'Ridge', 'Lasso'], this is used for the prediction of local trends
 		"""
 		self.y = y.copy()
 		self.derivative = derivative
 		self.max_depth = max_depth
 		self.ratio = ratio
 		self.criterion = criterion
+		self.linear_model = linear_model
 		N = len(y)
 		x = np.arange(N).reshape(-1,1)
 		dy = np.gradient(y, 1)
@@ -57,7 +60,14 @@ class CPD():
 
 		for i in range(len(splits)-1):
 			min, max = int(splits[i]), int(splits[i+1])
-			lr = LinearRegression()
+
+			if linear_model == "Linear":
+				lr = LinearRegression()
+			elif linear_model == "Lasso":
+				lr = Lasso()
+			elif linear_model == "Ridge":
+				lr = Ridge()
+
 			xlr, ylr = np.arange(min, max).reshape(-1,1), y[min:max]
 			lr.fit(xlr, ylr)
 
@@ -122,7 +132,7 @@ class CPD():
 					name="Derivative function"))
 		fig.update_layout(
 			title=go.layout.Title(
-				text="Changepoints Detection, Derivative used = {}, ratio = {} %, max_depth = {}, criterion = {}".format(self.derivative, self.ratio*100, self.max_depth, self.criterion),
+				text="Changepoints Detection, Derivative used = {}, ratio = {} %, max_depth = {}, DT_criterion = {}, Linear_model = {}".format(self.derivative, self.ratio*100, self.max_depth, self.criterion, self.linear_model),
 				xref="paper",
 				x=0.5))
 		plot(fig)
