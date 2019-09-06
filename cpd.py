@@ -3,7 +3,7 @@ author: @yacine-benbaccar
 """
 import numpy as np
 from sklearn.tree import DecisionTreeRegressor
-from sklearn.linear_model import LinearRegression, Lasso, Ridge
+from sklearn.linear_model import LinearRegression, Lasso, Ridge, ElasticNet
 from plotly.offline import plot
 import plotly.graph_objects as go
 
@@ -29,7 +29,9 @@ class CPD():
 		max_depth: determines the maximum number of intervals that we can discover (max_#interval = 2^max_depth)
 		derivative: use the derivative of the signal to identify the changepoint intervals
 		criterion: the loss metric to quantify the error of our splitting intervals ["mae", "mse"], this is used for the detection of intervals
-		linear_model: ['Linear', 'Ridge', 'Lasso'], this is used for the prediction of local trends
+		linear_model: ['Linear', 'Ridge', 'Lasso', 'ElasticNet'], this is used for the prediction of local trends, all models are used with their 
+			default parameters, there is no need for more elaborate models as we do not want to make prediction just to find the overall trend of
+			the signal
 		"""
 		self.y = y.copy()
 		self.derivative = derivative
@@ -67,6 +69,8 @@ class CPD():
 				lr = Lasso()
 			elif linear_model == "Ridge":
 				lr = Ridge()
+			elif linear_model == "ElasticNet":
+				lr = ElasticNet()
 
 			xlr, ylr = np.arange(min, max).reshape(-1,1), y[min:max]
 			lr.fit(xlr, ylr)
