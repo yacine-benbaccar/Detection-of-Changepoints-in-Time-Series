@@ -14,7 +14,7 @@ if __name__ == "__main__":
 	y = df["MarketCap"].values
 	cpd = CPD()
 	cpd.detect(y, derivative=True, linear_model='ElasticNet')
-	cpd.plot(derivative=True, detrended=True)
+	cpd.plot(derivative=True, detrended=True, smooth=True)
 	# cpd_mae = CPD()
 	# cpd_mae.detect(y, derivative=True, criterion="mae")
 	# cpd_mae.plot(derivative=True, detrended=True)

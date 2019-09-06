@@ -4,6 +4,7 @@ author: @yacine-benbaccar
 import numpy as np
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.linear_model import LinearRegression, Lasso, Ridge, ElasticNet
+from scipy.signal import savgol_filter
 from plotly.offline import plot
 import plotly.graph_objects as go
 
@@ -105,7 +106,7 @@ class CPD():
 		self.dy = dy
 		return trends, intervals
 
-	def plot(self, derivative=False, detrended=True,):
+	def plot(self, derivative=False, detrended=False, smooth=False,):
 		N = len(self.y)
 		fig = go.Figure()
 		# coloring the regions of change 
@@ -134,9 +135,18 @@ class CPD():
 					x=np.arange(N),
 					y=self.dy,
 					name="Derivative function"))
+		if smooth:
+			fig.add_trace(
+				go.Scatter(
+					x=np.arange(N),
+					y=self.smooth_trend(),
+					name="Smoothed Detected Local Trends"))
 		fig.update_layout(
 			title=go.layout.Title(
 				text="Changepoints Detection, Derivative used = {}, ratio = {} %, max_depth = {}, DT_criterion = {}, Linear_model = {}".format(self.derivative, self.ratio*100, self.max_depth, self.criterion, self.linear_model),
 				xref="paper",
 				x=0.5))
 		plot(fig)
+
+	def smooth_trend(self):
+		return savgol_filter(self.trends[-1], int(len(self.y)*0.01), polyorder=5)
